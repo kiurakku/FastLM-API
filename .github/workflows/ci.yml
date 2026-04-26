@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          FASTLM_DB_PASSWORD=fastlm_dev_only
+          FASTLM_ADMIN_SECRET=ci-fastlm-admin-secret-for-gha
+          OPENAI_API_KEY=
+          EOF
+
+      - name: Docker compose up
+        run: docker compose up -d --build
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 50); do
+            curl -fsS http://127.0.0.1:8001/health && exit 0
+            sleep 2
+          done
+          exit 1
+
+      - name: Install test deps and SDK
+        run: |
+          pip install -r tests/requirements.txt
+          pip install ./sdk
+
+      - name: Pytest
+        env:
+          FASTLM_BASE: http://127.0.0.1:8001
+          FASTLM_ADMIN_SECRET: ci-fastlm-admin-secret-for-gha
+        run: pytest tests -v --tb=short
+
+      - name: Docker compose down
+        if: always()
+        run: docker compose down -v

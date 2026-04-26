@@ -1,0 +1,52 @@
+# FastLM API + PostgreSQL + Redis
+# Запуск: docker compose up --build
+# API: http://localhost:8001
+
+name: fastlm
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fastlm
+      POSTGRES_PASSWORD: ${FASTLM_DB_PASSWORD:-fastlm_dev_only}
+      POSTGRES_DB: fastlm
+    volumes:
+      - fastlm_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fastlm -d fastlm"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://fastlm:${FASTLM_DB_PASSWORD:-fastlm_dev_only}@postgres:5432/fastlm
+      REDIS_URL: redis://redis:6379/0
+      ADMIN_SECRET: ${FASTLM_ADMIN_SECRET:-dev_fastlm_admin_change_me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      ADMIN_SECRET: ${FASTLM_ADMIN_SECRET:-dev_fastlm_admin_change_me}
+      WEBHOOK_HMAC_SECRET: ${WEBHOOK_HMAC_SECRET:-dev_webhook_hmac_change_me}
+      ENABLED_PLUGINS: ${ENABLED_PLUGINS:-audit,pii_mask,prompt_injection,cost_limit}
+      DEFAULT_MONTHLY_TOKEN_BUDGET: ${DEFAULT_MONTHLY_TOKEN_BUDGET:-1000000}
+      REQUESTS_PER_MINUTE: ${REQUESTS_PER_MINUTE:-60}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  fastlm_pg:
