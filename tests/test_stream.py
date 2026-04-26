@@ -8,6 +8,8 @@ import os
 import httpx
 import pytest
 
+pytestmark = pytest.mark.integration
+
 FASTLM_BASE = os.environ.get("FASTLM_BASE", "http://127.0.0.1:8001").rstrip("/")
 FASTLM_ADMIN_SECRET = os.environ.get("FASTLM_ADMIN_SECRET", "")
 
