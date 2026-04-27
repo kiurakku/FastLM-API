@@ -31,6 +31,25 @@ engineering, software, automation
 - Continuous integration compatibility through GitHub Actions.
 - Documentation-first approach for onboarding and contribution speed.
 
+## How to Install and Use
+
+**Python 3.12+**
+
+```bash
+git clone https://github.com/kiurakku/FastLM-API.git
+cd FastLM-API
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Configure **database / Redis** via environment variables or `.env` as described in project docs. Open **`http://localhost:8000/docs`** for OpenAPI when the stack is up.
+
+## Proof of Concept (PoC)
+
+- Issue an **OpenAI-compatible** `POST /v1/chat/completions` (or health check) against your running instance; paste **redacted** request/response or a screenshot of Swagger.
+
 ## Tech Context
 
 - **Primary language:** Python
@@ -41,13 +60,7 @@ engineering, software, automation
 
 ## Quick Start
 
-```bash
-git clone https://github.com/kiurakku/FastLM-API.git
-cd FastLM-API
-# Install dependencies (project-specific)
-# Build or run tests
-# Start the project
-```
+See **How to Install and Use** (venv → `pip install -e ".[dev]"` → `uvicorn app.main:app`).
 
 ## Configuration
 
