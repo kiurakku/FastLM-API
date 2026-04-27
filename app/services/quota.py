@@ -12,9 +12,9 @@ from app.settings import settings
 
 
 async def monthly_token_usage(session: AsyncSession, user_id: str) -> int:
-    from datetime import datetime, timezone
+    from datetime import UTC, datetime
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     q = select(
         func.coalesce(func.sum(RequestLogRow.prompt_tokens + RequestLogRow.completion_tokens), 0)

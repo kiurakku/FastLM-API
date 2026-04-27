@@ -78,7 +78,8 @@ async def chat_completions(
                         ) as resp:
                             if resp.status_code >= 400:
                                 err = (await resp.aread()).decode(errors="replace")
-                                yield f"data: {json.dumps({'error': {'message': err}}, ensure_ascii=False)}\n\n"
+                                error_payload = {"error": {"message": err}}
+                                yield f"data: {json.dumps(error_payload, ensure_ascii=False)}\n\n"
                                 return
                             async for line in resp.aiter_lines():
                                 if not line:
@@ -100,7 +101,8 @@ async def chat_completions(
                                 yield line + "\n\n"
                     completed = True
                 else:
-                    msgs = ctx.body.get("messages") if isinstance(ctx.body.get("messages"), list) else []
+                    raw_messages = ctx.body.get("messages")
+                    msgs = raw_messages if isinstance(raw_messages, list) else []
                     last = _last_user_text(msgs)
                     reply = (
                         f"[FastLM mock] Модель «{body.model}» отримала: {last[:500]!r}. "
@@ -154,7 +156,8 @@ async def chat_completions(
             finally:
                 if completed:
                     latency_ms = int((time.perf_counter() - t0) * 1000)
-                    msgs = ctx.body.get("messages") if isinstance(ctx.body.get("messages"), list) else []
+                    raw_messages = ctx.body.get("messages")
+                    msgs = raw_messages if isinstance(raw_messages, list) else []
                     pt = count_messages_prompt_tokens(msgs)
                     ct = count_text_tokens(assistant) if assistant else 1
                     await persist_request_log(user_id, body.model, pt, ct, latency_ms)

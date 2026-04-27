@@ -19,7 +19,10 @@ async def verify_api_key(
     authorization: Annotated[str | None, Header()] = None,
 ) -> str:
     if not authorization or not authorization.lower().startswith("bearer "):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Потрібен Authorization: Bearer <api_key>")
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED,
+            "Потрібен Authorization: Bearer <api_key>",
+        )
     raw = authorization.split(" ", 1)[1].strip()
     digest = hash_api_key(raw)
     q = select(ApiKeyRow).where(ApiKeyRow.key_hash == digest)
