@@ -1,166 +1,93 @@
-# FastLM API
+# FastLM-API
 
-[![CI](https://github.com/kiurakku/FastLM-API/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/kiurakku/FastLM-API/actions/workflows/ci.yml?query=branch%3Amain)
-[![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+![Repo Visibility](https://img.shields.io/badge/visibility-Public-blue)
+![Repository Type](https://img.shields.io/badge/type-Source-lightgrey)
+![Last Commit](https://img.shields.io/github/last-commit/kiurakku/FastLM-API)
+![Issues](https://img.shields.io/github/issues/kiurakku/FastLM-API)
+![License](https://img.shields.io/github/license/kiurakku/FastLM-API)
 
-OpenAI-compatible LLM gateway with API keys, request quotas, token budgeting, webhook delivery, and plugin-based request processing.
+OpenAI-compatible LLM gateway with key management, quotas, webhooks, and plugin pipeline.
 
-Designed as a practical backend service, not a toy endpoint: it has auth, quota controls, logs, tests, Docker runtime, and CI for both unit and integration flows.
+## Project Overview
 
-<p align="center">
-  <img src="docs/images/fastlm-cover.jpg" alt="FastLM project visual" width="720" />
-</p>
+$(@{defaultBranchRef=; description=OpenAI-compatible LLM gateway with key management, quotas, webhooks, and plugin pipeline.; isFork=False; isPrivate=False; licenseInfo=; name=FastLM-API; primaryLanguage=; repositoryTopics=System.Object[]; visibility=PUBLIC}.name) is maintained as a **Python** project focused on reliable engineering practices, readable architecture, and practical delivery.
 
-## Where this fits
+## Tags
 
-FastLM is the service layer in a 3-repository stack:
+engineering, software, automation
 
-- [Hookify](https://github.com/kiurakku/Hookify): reusable hook/plugin framework.
-- **FastLM-API**: OpenAI-compatible gateway + governance controls.
-- [BOLA](https://github.com/kiurakku/BOLA): security training lab that demonstrates auth pitfalls.
+## Why This Project
 
-## Features
+- Demonstrates production-minded implementation and maintainability.
+- Captures reusable patterns that can be applied across other systems.
+- Serves as a practical reference for development, operations, and quality workflows.
 
-- OpenAI-style `POST /v1/chat/completions` endpoint.
-- JSON response mode and SSE streaming mode.
-- API-key authentication (`Authorization: Bearer sk-...`).
-- Admin endpoints for key creation, webhooks, usage aggregation.
-- Per-minute rate limiting via Redis.
-- Monthly token budget checks with webhook notification.
-- Token counting via `tiktoken` (`cl100k_base`).
-- HMAC-SHA256 webhook signatures (`X-Signature: sha256=...`).
-- Hookify plugin pipeline (`before_request` / `after_response`).
+## Key Capabilities
 
-## Architecture
+- Clear repository structure for iterative development.
+- Standardized development lifecycle: setup, build, test, and deployment flow.
+- Continuous integration compatibility through GitHub Actions.
+- Documentation-first approach for onboarding and contribution speed.
 
-```text
-Client
-  -> FastAPI app (app/main.py)
-      -> routers/admin.py
-      -> routers/completions.py
-      -> services/quota.py        (Redis window counters)
-      -> services/tokens.py       (tiktoken)
-      -> services/request_log.py  (PostgreSQL)
-      -> services/webhooks.py     (signed delivery + retries)
-      -> plugins_setup.py         (Hookify registry)
+## Tech Context
 
-Data layer:
-  PostgreSQL (keys, request logs, webhook subscriptions)
-  Redis      (minute buckets: quota:{user_id}:{bucket})
-```
+- **Primary language:** Python
+- **Visibility:** Public
+- **Repository role:** Source
+- **Default branch:** main
+- **License:** MIT License
 
-## API surface
+## Quick Start
 
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/health` | Liveness check |
-| `POST` | `/admin/keys` | Create API key (requires `X-Admin-Secret`) |
-| `POST` | `/admin/webhooks` | Register webhook targets |
-| `GET` | `/admin/usage` | Aggregate usage by user/time range |
-| `POST` | `/v1/chat/completions` | Chat completion (JSON or stream) |
-
-## Quick start (Docker)
-
-```bash
+`ash
 git clone https://github.com/kiurakku/FastLM-API.git
 cd FastLM-API
-cp .env.example .env
-# set FASTLM_ADMIN_SECRET (and OPENAI_API_KEY if needed)
-docker compose up --build
-```
+# Install dependencies (project-specific)
+# Build or run tests
+# Start the project
+`
 
-Service URL: `http://localhost:8001`
+## Configuration
 
-## Quick API examples
-
-Create key:
-
-```bash
-curl -sS -X POST http://localhost:8001/admin/keys \
-  -H "X-Admin-Secret: $FASTLM_ADMIN_SECRET" \
-  -H "Content-Type: application/json" \
-  -d '{"label":"demo"}'
-```
-
-Non-stream request:
-
-```bash
-curl -sS -X POST http://localhost:8001/v1/chat/completions \
-  -H "Authorization: Bearer sk-REPLACE_ME" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello"}]}'
-```
-
-SSE stream:
-
-```bash
-curl -sS -N -X POST http://localhost:8001/v1/chat/completions \
-  -H "Authorization: Bearer sk-REPLACE_ME" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"gpt-4o-mini","stream":true,"messages":[{"role":"user","content":"stream this"}]}'
-```
-
-## Plugin pipeline behavior
-
-1. Request payload is converted into Hookify `RequestContext`.
-2. `plugin_registry.run_before(ctx)` may mask content, reject request, or audit data.
-3. Completion executes (OpenAI call or local mock fallback).
-4. `plugin_registry.run_after(ctx, response)` can post-process response.
-
-Currently wired in `plugins_setup.py`: `pii_mask`, `prompt_injection`, `audit`.
-
-## Environment variables
-
-| Variable | Meaning |
-|---|---|
-| `DATABASE_URL` | SQLAlchemy async DB URL |
-| `REDIS_URL` | Redis URL for rate-limiting buckets |
-| `ADMIN_SECRET` | Secret for admin endpoints |
-| `OPENAI_API_KEY` | Optional; if empty service uses deterministic mock response |
-| `OPENAI_BASE_URL` | Upstream OpenAI-compatible base URL |
-| `WEBHOOK_HMAC_SECRET` | Secret used to sign webhook body |
-| `ENABLED_PLUGINS` | Comma-separated plugins |
-| `DEFAULT_MONTHLY_TOKEN_BUDGET` | Per-user monthly token cap |
-| `REQUESTS_PER_MINUTE` | Per-user per-minute request cap |
+- Use environment variables for secrets and environment-specific values.
+- Keep local configuration in non-committed files (for example: .env.local).
+- Prefer explicit defaults and fail-fast validation for required settings.
 
 ## Testing
 
-### Unit tests (fast, isolated)
+- Run unit/integration checks before each push.
+- Keep tests deterministic and scoped to behavior.
+- Add regression tests for every fixed defect.
 
-- SQLite in-memory DB
-- mocked Redis client
-- tests for admin auth, API-key auth, mock completions, quota 429, webhook signature
+## CI/CD
 
-```bash
-pip install -r requirements.txt -r requirements-dev.txt
-pytest tests/unit -v --tb=short
-```
+This repository is designed to work with GitHub Actions pipelines for:
 
-### Integration test (stream + SDK)
+- Build validation
+- Test execution
+- Baseline repository health checks
 
-```bash
-docker compose up -d --build
-pip install -r requirements.txt -r tests/requirements.txt
-pip install ./sdk
-FASTLM_BASE=http://127.0.0.1:8001 FASTLM_ADMIN_SECRET=$FASTLM_ADMIN_SECRET pytest tests/test_stream.py -v --tb=short
-```
+## Roadmap
 
-## CI
+- Strengthen automated quality gates and security checks.
+- Expand coverage of integration and end-to-end scenarios.
+- Improve observability, performance benchmarks, and release discipline.
 
-GitHub Actions runs:
+## Contribution Guidelines
 
-- `unit` job: install + Ruff + unit tests.
-- `integration` job: Docker Compose stack + stream/SDK integration test.
+- Open an issue describing the change or bug.
+- Submit focused pull requests with clear scope.
+- Include test evidence for behavioral changes.
 
-## SDK
+## Security Notes
 
-Python SDK lives in `sdk/` and supports sync + async chat and streaming.
-See `sdk/README.md`.
+- Do not commit credentials, tokens, or private keys.
+- Report sensitive findings privately via maintainer contact channels.
 
----
+## License
 
-Recommended GitHub About fields:
+This project is distributed under **MIT License**.
 
-- **Description**: `OpenAI-compatible LLM gateway with API keys, Redis quotas, webhooks and plugin pipeline`
-- **Topics**: `python`, `fastapi`, `openai`, `llm`, `api-gateway`, `redis`
+## Maintainer
+
+Maintained by **Kiurakku** as part of a portfolio of software engineering, security engineering, and platform projects.
