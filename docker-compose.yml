@@ -37,7 +37,6 @@ services:
       ADMIN_SECRET: ${FASTLM_ADMIN_SECRET:-dev_fastlm_admin_change_me}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
-      ADMIN_SECRET: ${FASTLM_ADMIN_SECRET:-dev_fastlm_admin_change_me}
       WEBHOOK_HMAC_SECRET: ${WEBHOOK_HMAC_SECRET:-dev_webhook_hmac_change_me}
       ENABLED_PLUGINS: ${ENABLED_PLUGINS:-audit,pii_mask,prompt_injection,cost_limit}
       DEFAULT_MONTHLY_TOKEN_BUDGET: ${DEFAULT_MONTHLY_TOKEN_BUDGET:-1000000}

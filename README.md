@@ -8,6 +8,10 @@ OpenAI-compatible LLM gateway with API keys, request quotas, token budgeting, we
 
 Designed as a practical backend service, not a toy endpoint: it has auth, quota controls, logs, tests, Docker runtime, and CI for both unit and integration flows.
 
+<p align="center">
+  <img src="docs/images/fastlm-cover.jpg" alt="FastLM project visual" width="720" />
+</p>
+
 ## Where this fits
 
 FastLM is the service layer in a 3-repository stack:
