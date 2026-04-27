@@ -1,6 +1,6 @@
 # FastLM API
 
-[![CI](https://github.com/kiurakku/FastLM-API/actions/workflows/ci.yml/badge.svg)](https://github.com/kiurakku/FastLM-API/actions/workflows/ci.yml)
+[![CI](https://github.com/kiurakku/FastLM-API/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/kiurakku/FastLM-API/actions/workflows/ci.yml?query=branch%3Amain)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 
