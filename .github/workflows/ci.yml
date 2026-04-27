@@ -65,7 +65,7 @@ jobs:
         env:
           FASTLM_BASE: http://127.0.0.1:8001
           FASTLM_ADMIN_SECRET: ci-fastlm-admin-secret-for-gha
-        run: pytest tests/test_stream.py -v --tb=short
+        run: pytest -o addopts= tests/test_stream.py -m integration -v --tb=short
 
       - name: Docker compose down
         if: always()
